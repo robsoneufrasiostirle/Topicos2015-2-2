@@ -9,7 +9,9 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
+
 
 /**
  * Created by Robson on 28/09/2015.
@@ -22,8 +24,8 @@ public class TelaJogo extends TelaBase {
 
     private Box2DDebugRenderer debug; // desenha o mundo na tela para ajudar no desenvolvimento
 
-    private static final float ESCALA = 2;
-    private static final  float PIXEL_METRO = 32;
+    private Body chao; //corpo do chao
+    private Passaro passaro;
 
     public TelaJogo(MainGame game) {
         super(game);
@@ -32,49 +34,74 @@ public class TelaJogo extends TelaBase {
     @Override
     public void show() {
 
-        camera = new OrthographicCamera(Gdx.graphics.getWidth() / ESCALA, Gdx.graphics.getHeight() / ESCALA);
+        camera = new OrthographicCamera(Gdx.graphics.getWidth() / Util.escala, Gdx.graphics.getHeight() / Util.escala);
         debug = new Box2DDebugRenderer();
         mundo = new World(new Vector2(0, -9.8f), false);
 
+        initChao();
         initPassaro();
     }
 
+
+    private void initChao() {
+        chao = Util.criarCorpo(mundo, BodyDef.BodyType.StaticBody, 0, 0);
+
+
+    }
+
     private void initPassaro() {
+        passaro = new Passaro(mundo, camera, null);
 
-        BodyDef def = new BodyDef(); // objeto de definição do corpo
-        def.type = BodyDef.BodyType.DynamicBody;
-        float y = (Gdx.graphics.getHeight() / 2 / ESCALA) / PIXEL_METRO  +2;
-        float x = (Gdx.graphics.getWidth() / 2 / ESCALA) / PIXEL_METRO + 2;
-        def.position.set(x, y);
-        def.fixedRotation = true;
-
-        Body corpo = mundo.createBody(def); // criação do corpo
-
-        CircleShape shape = new CircleShape();
-        shape.setRadius(20 / PIXEL_METRO);
-
-        Fixture fixacao = corpo.createFixture(shape, 1);
-
-        shape.dispose();
     }
 
     @Override
     public void render(float delta) {
 
-        Gdx.gl.glClearColor(.25f, .25f, .25f, 1); // limpa a tela e pinta a cor do fundo
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); // mantem o buffer de cores
+        Gdx.gl.glClearColor(.25f, .25f, .25f, 1);// limpa a tela e pinta a cor de fundo
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);// mantem o buffer de cores
 
-        camera.position.set(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f, 0);
-        camera.update();
+        atualizar(delta);
+        renderizar(delta);
 
-        mundo.step(delta, 6, 2);
+        debug.render(mundo, camera.combined.cpy().scl(Util.pixel_metro));
 
-        debug.render(mundo, camera.combined.scl(PIXEL_METRO));
+    }
+
+    private void renderizar(float delta) {
+
+    }
+
+    private void atualizar(float delta) {
+        mundo.step(1f / 60f, 6, 2);
+        atualizarChao();
+
+    }
+
+
+    // atualiza a posicao do chao para acompanhar o passaro
+    private void atualizarChao() {
+        float largura = camera.viewportWidth / Util.pixel_metro;
+        Vector2 posicao = chao.getPosition();
+        posicao.x = largura / 2;
+        chao.setTransform(posicao, 0);
 
     }
 
     @Override
     public void resize(int width, int height) {
+
+        camera.setToOrtho(false, width / Util.escala, height / Util.escala);
+        camera.update();
+        redimensionaChao();
+    }
+
+    private void redimensionaChao() {
+        chao.getFixtureList().clear();
+        float largura = camera.viewportWidth / Util.pixel_metro;
+        PolygonShape shape = new PolygonShape();
+        shape.setAsBox(largura / 2, Util.altura_chao / 2);
+        Fixture forma = Util.criarForma(chao, shape, "chao");
+        shape.dispose();
 
     }
 
@@ -90,6 +117,7 @@ public class TelaJogo extends TelaBase {
 
     @Override
     public void dispose() {
-
+        debug.dispose();
+        mundo.dispose();
     }
 }
