@@ -16,7 +16,7 @@ public class Util {
     public static final float pixel_metro = 32;
     public static final float altura_chao = 2.5f; // altura do chão em metros
 
-    public static Body criarCorpo(World mundo, BodyDef.BodyType tipo, float x, float y){
+    public static Body criarCorpo(World mundo, BodyDef.BodyType tipo, float x, float y) {
         BodyDef definicao = new BodyDef();
         definicao.type = tipo;
         definicao.position.set(x, y);
@@ -27,12 +27,13 @@ public class Util {
 
     /**
      * Cria uma forma para o corpo
+     *
      * @param corpo
      * @param shape Forma geometrica do corpo
-     * @param nome nome utilizado para identificar na colisão
+     * @param nome  nome utilizado para identificar na colisão
      * @return
      */
-    public static Fixture criarForma(Body corpo, Shape shape, String nome){
+    public static Fixture criarForma(Body corpo, Shape shape, String nome) {
 
         FixtureDef definicao = new FixtureDef();
         definicao.density = 1; // densidade do corpo
