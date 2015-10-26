@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
@@ -40,6 +41,8 @@ public class TelaJogo extends TelaBase {
 
         initChao();
         initPassaro();
+
+        new Obstaculo(mundo, camera, null);
     }
 
 
@@ -107,10 +110,10 @@ public class TelaJogo extends TelaBase {
 
     // atualiza a posicao do chao para acompanhar o passaro
     private void atualizarChao() {
-        float largura = camera.viewportWidth / Util.pixel_metro;
-        Vector2 posicao = chao.getPosition();
-        posicao.x = largura / 2;
-        chao.setTransform(posicao, 0);
+
+        Vector2 posicao = passaro.getCorpo().getPosition();
+
+        chao.setTransform(posicao.x, 0, 0);
 
     }
 
