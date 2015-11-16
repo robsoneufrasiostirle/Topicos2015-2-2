@@ -4,7 +4,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -19,9 +21,12 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 
@@ -52,6 +57,15 @@ public class TelaJogo extends TelaBase {
 
     private boolean gameOver = false;
 
+    private Texture [] texturasPassaro;
+    private Texture texturaObstaculoCima;
+    private Texture texturaObstaculoBaixo;
+    private Texture texturaChao;
+    private Texture texturaFundo;
+    private Texture texturaPlay;
+    private Texture texturaGameOver;
+
+    private boolean jogoIniciado = false;
 
     public TelaJogo(MainGame game) {
         super(game);
@@ -87,10 +101,31 @@ public class TelaJogo extends TelaBase {
             }
         });
 
+        initTexturas();
         initChao();
         initPassaro();
         initFontes();
         initInformacoes();
+
+
+    }
+
+    private void initTexturas() {
+
+        texturasPassaro = new Texture[3];
+        texturasPassaro [0] = new Texture("sprites/bird-1.png");
+        texturasPassaro [1] = new Texture("sprites/bird-3.png");
+        texturasPassaro [2] = new Texture("sprites/bird-3.png");
+
+        texturaObstaculoCima = new Texture("sprites/toptube.png");
+        texturaObstaculoBaixo = new Texture("sprites/bottomtube.png");
+
+        texturaFundo = new Texture("sprites/bg.png");
+        texturaChao = new Texture("sprites/ground.png");
+
+        texturaPlay = new Texture("sprites/playbtn.png");
+        texturaGameOver = new Texture("sprites/gameover.png");
+
 
     }
 
@@ -128,6 +163,36 @@ public class TelaJogo extends TelaBase {
         estilo.font = fontePontuacao;
         lbPontuacao = new Label("0", estilo);
         palcoInformacoes.addActor(lbPontuacao);
+
+
+        ImageButton.ImageButtonStyle estiloBotao = new ImageButton.ImageButtonStyle();
+        estiloBotao.up = new SpriteDrawable(new Sprite(texturaPlay));
+        btnplay = new ImageButton(estiloBotao);
+        palcoInformacoes.addActor(btnplay);
+
+        btnplay.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                jogoIniciado = true;
+            }
+        });
+
+        btnGameOver.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                reiniciarJogo();
+            }
+        });
+
+        estiloBotao.up = new SpriteDrawable(new Sprite(texturaGameOver));
+        btnGameOver = new ImageButton(estiloBotao);
+        palcoInformacoes.addActor(btnGameOver);
+
+    }
+
+    private void reiniciarJogo() {
+
+        game.setScreen(new TelaJogo(game));
     }
 
 
@@ -176,17 +241,22 @@ public class TelaJogo extends TelaBase {
     private void atualizar(float delta) {
 
         palcoInformacoes.act(delta);
-        passaro.atuaizar(delta);
+        passaro.getCorpo().setFixedRotation(!gameOver);
+        passaro.atuaizar(delta, !gameOver);
 
-        mundo.step(1f / 60f, 6, 2);
+        if (jogoIniciado){
+            mundo.step(1f / 60f, 6, 2);
+            atualizarObstaculos();
+        }
 
         atualizaInformacoes();
 
-        atualizarObstaculos();
-        atualizarCamera();
-        atualizarChao();
+        if(!gameOver){
+            atualizarCamera();
+            atualizarChao();
+        }
 
-        if(pulando){
+        if(pulando && !gameOver && jogoIniciado) {
             passaro.pular();
         }
 
@@ -197,6 +267,18 @@ public class TelaJogo extends TelaBase {
 
         lbPontuacao.setPosition(cameraInfo.viewportWidth / 2 - lbPontuacao.getPrefWidth() / 2,
                 cameraInfo.viewportHeight - lbPontuacao.getPrefHeight());
+
+        btnplay.setPosition(
+                cameraInfo.viewportWidth / 2 - btnplay.getPrefWidth() / 2,
+                cameraInfo.viewportHeight / 2 - btnplay.getPrefHeight() * 2);
+
+        btnplay.setVisible(!jogoIniciado);
+
+        btnGameOver.setPosition(
+                cameraInfo.viewportWidth / 2 - btnGameOver.getPrefWidth() / 2,
+                cameraInfo.viewportHeight / 2 - btnGameOver.getPrefHeight() / 2 );
+
+        btnGameOver.setVisible(gameOver);
 
     }
 
@@ -282,5 +364,18 @@ public class TelaJogo extends TelaBase {
         mundo.dispose();
         palcoInformacoes.dispose();
         fontePontuacao.dispose();
+
+        texturasPassaro [0].dispose();
+        texturasPassaro [1].dispose();
+        texturasPassaro [2] .dispose();
+
+        texturaObstaculoCima.dispose();
+        texturaObstaculoBaixo.dispose();
+
+        texturaFundo.dispose();
+        texturaChao.dispose();
+
+        texturaPlay.dispose();
+        texturaGameOver.dispose();
     }
 }

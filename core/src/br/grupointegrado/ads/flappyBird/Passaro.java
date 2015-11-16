@@ -4,6 +4,7 @@ package br.grupointegrado.ads.flappyBird;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
@@ -51,13 +52,35 @@ public class Passaro {
     // aplica uma força positiva no y para simular o pulo
     public void pular(){
         corpo.setLinearVelocity(corpo.getLinearVelocity().x,0);
-        corpo.applyForceToCenter(0, 150, false);
+        corpo.applyForceToCenter(0, 115, false);
     }
 
     // atualiza o comportamento do passaro
-    public void atuaizar(float delta){
+    public void atuaizar(float delta, boolean movimentar){
 
-        atualizarVelocidade();
+        if(movimentar){
+            atualizarVelocidade();
+            atualizarRotacao();
+        }
+
+    }
+
+    private void atualizarRotacao() {
+        float velocidadeY = corpo.getLinearVelocity().y;
+        float rotacao = 0;
+
+        if (velocidadeY < 0 ){
+            // caindo
+            rotacao = - 15;
+        }else if (velocidadeY > 0){
+            // subindo
+            rotacao = 10;
+        }else{
+            // reto
+            rotacao = 0;
+        }
+        rotacao = (float) Math.toRadians(rotacao);
+        corpo.setTransform(corpo.getPosition(),rotacao );
     }
 
     private void atualizarVelocidade() {
